@@ -52,7 +52,7 @@ for task in narrowedList:
     if issueParser.issueHasSubtasks:
         issueParser.getAndParseSubtasks(False)
         if len(issueParser.subtasksWOEstimation) > 0:
-            print("Not estimated: " + ",".join(issueParser.subtasksWOEstimation))
+            print("Sub-tasks not estimated: " + ",".join(issueParser.subtasksWOEstimation))
 
     # print progress in 1 line
     progressInfoLine = issueParser.getCompactProgressInfo()
