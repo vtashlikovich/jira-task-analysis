@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import configparser
 import sys
 from jiraparser import JiraJSONParser, TokenAuth
@@ -11,18 +13,27 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 # prepare parameters
-jSQLString = JiraJSONParser.formJQLQuery(
-    projectId=config["default"]["issueKey"],
-    filter=int(config["default"]["filterId"]),
-    taskTypes=["Story"],
-)
-authToken = config["default"]["authentication-token"]
-jiraBaseAPIURL = config["default"]["jiraURL"] + "/rest/api/2/issue/"
-boardAPIURL = config["default"]["jiraURL"] + "/rest/api/2/search?jql=" + jSQLString
+# if there is a Board in config (filterId) ->
+if "filterId" in config["default"]:
+    jsql_query = JiraJSONParser.form_jql_query(
+        projectId=config["default"]["issueKey"],
+        filter=int(config["default"]["filterId"]),
+        taskTypes=["Story", "Task"],
+    )
+# if Board is not pointed ->
+else:
+    jsql_query = JiraJSONParser.form_jql_query(
+        projectId=config["default"]["issueKey"],
+        taskTypes=["Story", "Task"],
+    )
+
+auth_token = config["default"]["authentication-token"]
+jira_base_api_url = config["default"]["jiraURL"] + "/rest/api/2/issue/"
+board_api_url = config["default"]["jiraURL"] + "/rest/api/2/search?jql=" + jsql_query
 
 # fetch board issues
 resp = requests.get(
-    boardAPIURL, auth=TokenAuth(authToken), params={"Content-Type": "application/json"}
+    board_api_url, auth=TokenAuth(auth_token), params={"Content-Type": "application/json"}
 )
 
 if resp.status_code != 200:
@@ -32,34 +43,34 @@ result = resp.json()
 
 print("max {:d} out of {:d}".format(result["maxResults"], result["total"]))
 
-# TODO: replace with full list when needed
-narrowedList = result["issues"][:5]
+narrowed_list = result["issues"]
+# narrowed_list = result["issues"][:3]
 
-for task in narrowedList:
+for task in narrowed_list:
     # fetch issue info
-    issueParser = JiraJSONParser(authToken, jiraBaseAPIURL)
-    issueParser.parseIssueJson(task)
+    issue_parser = JiraJSONParser(auth_token, jira_base_api_url)
+    issue_parser.parse_issue_json(task)
     print(
         "Issue: "
         + task["key"]
         + ", type: "
-        + issueParser.issueTypeName
+        + issue_parser.issue_type_name
         + ", status: "
-        + issueParser.issueStatus
+        + issue_parser.issue_status
     )
 
     # if there are subtasks - fetch them one by one
-    if issueParser.issueHasSubtasks:
-        issueParser.getAndParseSubtasks(False)
-        if len(issueParser.subtasksWOEstimation) > 0:
-            print("Sub-tasks not estimated: " + ",".join(issueParser.subtasksWOEstimation))
+    if issue_parser.issue_has_subtasks:
+        issue_parser.get_parse_subtasks(False)
+        if len(issue_parser.subtasks_wo_estimation) > 0:
+            print("Sub-tasks not estimated: " + ",".join(issue_parser.subtasks_wo_estimation))
 
     # print progress in 1 line
-    progressInfoLine = issueParser.getCompactProgressInfo()
-    if len(progressInfoLine) > 0:
-        print(issueParser.getCompactProgressInfo())
+    progress_info_line = issue_parser.get_compact_progress_info()
+    if len(progress_info_line) > 0:
+        print(issue_parser.get_compact_progress_info())
     # warn if there is no estimation for task/bug
-    elif issueParser.issueTypeName.lower() != "story":
+    elif issue_parser.issue_type_name.lower() != "story":
         print("No estimation")
 
     print("")

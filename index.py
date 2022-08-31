@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import configparser
 import sys
 from jiraparser import JiraJSONParser
@@ -18,22 +20,22 @@ if len(sys.argv) < 2:
     print("> python index.py JIRA-15")
     exit(1)
 
-issueKey = sys.argv[1]
-authToken = config["default"]["authentication-token"]
-jiraBaseAPIURL = config["default"]["jiraURL"] + "/rest/api/2/issue/"
+issue_key = sys.argv[1]
+auth_token = config["default"]["authentication-token"]
+jira_base_api_url = config["default"]["jiraURL"] + "/rest/api/2/issue/"
 
 # action: get a single issue
-issueParser = JiraJSONParser(authToken, jiraBaseAPIURL)
-issueParser.getAndParse(issueKey)
+issue_parser = JiraJSONParser(auth_token, jira_base_api_url)
+issue_parser.get_and_parse(issue_key)
 
 # general information
-issueParser.printGeneralInfo()
+issue_parser.print_general_info()
 
 # story progress info
-issueParser.printProgressInfo()
+issue_parser.print_progress_info()
 
 # subtasks info
-issueParser.getAndParseSubtasks()
-issueParser.printSubtasksStats()
+issue_parser.get_parse_subtasks()
+issue_parser.print_subtasks_stats()
 
 # TODO: print tasks WO estimation and their status

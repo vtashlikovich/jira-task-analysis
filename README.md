@@ -45,11 +45,17 @@ _filterId_ - board id. It can be taken from board settings _... (three dots) -> 
 ### Analyze single issue
 ```bash
 $ python index.py ISSUE
+
+# or run as an executable script (Unix/Linux/MacOs)
+$ ./index.py ISSUE
 ```
 
 ### Analyze Jira board
 ```bash
 $ python kanban.py
+
+# or run as an executable script (Unix/Linux/MacOs)
+$ ./kanban.py
 ```
 
 ## How to install
